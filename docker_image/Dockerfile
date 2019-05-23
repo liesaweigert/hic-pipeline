@@ -65,6 +65,9 @@ RUN cd pairix-0.3.6/ && make
 
 RUN rm pairix-0.3.6.zip && rm samtools-1.6.tar && rm v0.7.17.zip
 
+# Install Sambamba
+RUN wget https://github.com/lomereiter/sambamba/releases/download/v0.6.9/sambamba_v0.6.9_linux.tar.bz2 && tar -xvjf sambamba_v0.6.9_linux.tar.bz2 && mv sambamba_v0.6.9 sambamba && rm -rf sambamba_*
+
 # For sorting, LC_ALL is C
 ENV LC_ALL C
 ENV PATH=/opt:/opt/scripts:/opt/scripts/common:$PATH

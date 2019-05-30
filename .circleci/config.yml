@@ -79,6 +79,7 @@ workflows:
                 - master
                 - dev-1
                 - PIP-546-entrypoint-after-libraries
+                - PIP-441
       - test:
           name: test_align
           requires:

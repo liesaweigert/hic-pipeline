@@ -119,7 +119,7 @@ task fragment {
     File bam_file
     File norm_res_input
     File restriction    # restriction enzyme sites in the reference genome
-
+    #TODO: figure out how to conver samtools to sambamba
     command {
         samtools view -h ${bam_file} | awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
  

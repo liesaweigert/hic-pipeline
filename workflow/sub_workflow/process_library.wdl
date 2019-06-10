@@ -72,6 +72,7 @@ workflow process_library {
     }
 }
 
+#Sambamba
 task align {
     File idx_tar        # reference bwa index tar
     Array[File] fastqs  # [read_end_id]
@@ -98,7 +99,7 @@ task align {
         source /opt/scripts/common/countligations.sh
         # Align reads
         echo "Running bwa command"
-        bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} | samtools view -hbS - > result.bam
+        bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} | /opt/sambamba-0.7.0 view -hbS - > result.bam
     }
 
     output {
@@ -178,6 +179,7 @@ task fragment {
     }
 }
 
+#sambamba
 task merge {
     Array[File] bam_files
     

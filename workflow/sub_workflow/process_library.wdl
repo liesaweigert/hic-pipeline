@@ -99,12 +99,15 @@ task align {
         source /opt/scripts/common/countligations.sh
         # Align reads
         echo "Running bwa command"
-        bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} | /opt/sambamba-0.7.0 view -hbS - > result.bam
+        bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} > result.sam
+        /opt/sambamba-0.7.0 view --header --sam-input --format=bam result.sam > result.bam
+        echo "Align finished"
     }
 
     output {
         File result = glob("result.bam")[0]
         File norm_res = glob("result_norm.txt.res.txt")[0]
+        File sam = glob("result.sam")[0]
      }
 
     runtime {
@@ -118,10 +121,9 @@ task fragment {
     File bam_file
     File norm_res_input
     File restriction    # restriction enzyme sites in the reference genome
-    #TODO: figure out how to conver samtools to sambamba
     command {
-        samtools view -h ${bam_file} | awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
- 
+        /opt/sambamba-0.7.0 view --header ${bam_file} | awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
+
         # if any normal reads were written, find what fragment they correspond
         # to and store that
         

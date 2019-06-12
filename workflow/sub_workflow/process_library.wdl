@@ -102,14 +102,14 @@ task align {
         # Align reads
         echo "Running bwa command"
         bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} > result.sam
-        /opt/sambamba-0.7.0 view --header --sam-input --format=bam result.sam > result.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result.sam > result.bam
+        rm result.sam
         echo "Align finished"
     }
 
     output {
         File result = glob("result.bam")[0]
         File norm_res = glob("result_norm.txt.res.txt")[0]
-        File sam = glob("result.sam")[0]
      }
 
     runtime {
@@ -124,13 +124,14 @@ task fragment {
     File norm_res_input
     File restriction    # restriction enzyme sites in the reference genome
     command {
-        /opt/sambamba-0.7.0 view --header ${bam_file} | awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
+        echo "Running chimeric_blacklist"
+        /opt/sambamba-0.7.0 view -h ${bam_file} |  awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
 
         # if any normal reads were written, find what fragment they correspond
         # to and store that
         
         echo "Running fragment"
-        /opt/scripts/common/fragment.pl result_norm.txt result_frag.txt ${restriction}   
+        /opt/scripts/common/fragment.pl result_norm.txt result_frag.txt ${restriction}
         echo $(ls)
 
         # no restriction site !!!!
@@ -143,15 +144,15 @@ task fragment {
 
         # convert sams to bams and delete the sams
         echo "Converting sam to bam"
-        samtools view -hb result_collisions.sam > collisions.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_collisions.sam > collisions.bam
         rm result_collisions.sam
-        samtools view -hb result_collisions_low_mapq.sam > collisions_low_mapq.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_collisions_low_mapq.sam > collisions_low_mapq.bam
         rm result_collisions_low_mapq.sam
-        samtools view -hb result_unmapped.sam > unmapped.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_unmapped.sam > unmapped.bam
         rm result_unmapped.sam
-        samtools view -hb result_mapq0.sam > mapq0.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_mapq0.sam > mapq0.bam
         rm result_mapq0.sam
-        samtools view -hb result_alignable.sam > alignable.bam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_alignable.sam > alignable.bam
         rm result_alignable.sam
         #removed all sam files
         ##restriction used to be site_file
@@ -238,8 +239,8 @@ task dedup {
         python3 /opt/hic-pipeline/src/jsonify_stats.py --library-complexity library_complexity.txt
         python3 /opt/hic-pipeline/src/jsonify_stats.py --library-stats stats.txt
         awk '{split($(NF-1), a, "$"); split($NF, b, "$"); print a[3],b[3] > a[2]"_dedup"}' merged_nodups.txt
-        samtools view -h ${alignable_bam} | awk 'BEGIN{OFS="\t"}FNR==NR{for (i=$1; i<=$2; i++){a[i];} next}(!(FNR in a) && $1 !~ /^@/){$2=or($2,1024)}{print}' result_dedup - > result_alignable_dedup.sam
-        samtools view -hb result_alignable_dedup.sam > result_alignable_dedup.bam
+        /opt/sambamba-0.7.0 view -h ${alignable_bam} | awk 'BEGIN{OFS="\t"}FNR==NR{for (i=$1; i<=$2; i++){a[i];} next}(!(FNR in a) && $1 !~ /^@/){$2=or($2,1024)}{print}' result_dedup - > result_alignable_dedup.sam
+        /opt/sambamba-0.7.0 view -h -S -f "bam" result_alignable_dedup.sam > result_alignable_dedup.bam
         rm result_alignable_dedup.sam
         rm ${alignable_bam}
     >>>

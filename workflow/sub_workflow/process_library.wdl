@@ -24,7 +24,8 @@ workflow process_library {
         call fragment { input:
             bam_file = align.result,
             norm_res_input = align.norm_res,
-            restriction = restriction_sites
+            restriction = restriction_sites,
+            cpu = cpu
         }
     }
 
@@ -38,7 +39,9 @@ workflow process_library {
 
     scatter(i in range(5)){
         call merge { input:
-            bam_files = bams_to_merge[i]
+            bam_files = bams_to_merge[i],
+            cpu = cpu
+
         }
     }
   
@@ -102,7 +105,7 @@ task align {
         # Align reads
         echo "Running bwa command"
         bwa mem -SP5M -t ${select_first([cpu,32])} $reference_index_path ${fastqs[0]} ${fastqs[1]} > result.sam
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result.sam > result.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result.sam > result.bam
         rm result.sam
         echo "Align finished"
     }
@@ -123,9 +126,10 @@ task fragment {
     File bam_file
     File norm_res_input
     File restriction    # restriction enzyme sites in the reference genome
+    Int? cpu
     command {
         echo "Running chimeric_blacklist"
-        /opt/sambamba-0.7.0 view -h ${bam_file} |  awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} ${bam_file} |  awk -v "fname"=result -f /opt/scripts/common/chimeric_blacklist.awk
 
         # if any normal reads were written, find what fragment they correspond
         # to and store that
@@ -144,15 +148,15 @@ task fragment {
 
         # convert sams to bams and delete the sams
         echo "Converting sam to bam"
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result_collisions.sam > collisions.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result_collisions.sam > collisions.bam
         rm result_collisions.sam
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result_collisions_low_mapq.sam > collisions_low_mapq.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result_collisions_low_mapq.sam > collisions_low_mapq.bam
         rm result_collisions_low_mapq.sam
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result_unmapped.sam > unmapped.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result_unmapped.sam > unmapped.bam
         rm result_unmapped.sam
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result_mapq0.sam > mapq0.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result_mapq0.sam > mapq0.bam
         rm result_mapq0.sam
-        /opt/sambamba-0.7.0 view -h -S -f "bam" result_alignable.sam > alignable.bam
+        /opt/sambamba-0.7.0 view -h -t ${select_first([cpu,32])} -S -f "bam" result_alignable.sam > alignable.bam
         rm result_alignable.sam
         #removed all sam files
         ##restriction used to be site_file
@@ -184,12 +188,15 @@ task fragment {
     }
 }
 
-#sambamba
 task merge {
     Array[File] bam_files
+    Int? cpu
     
     command <<<
-        samtools merge merged_bam_files.bam ${sep=' ' bam_files} 
+        # In order for several BAM files to be merged into one, they must firstly be
+        #sorted in the same order.
+
+       /opt/sambamba-0.7.0 merge merged_bam_files.bam ${sep=' ' bam_files} 
     >>>
 
     output {

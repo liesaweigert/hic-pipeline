@@ -69,7 +69,7 @@ You will also need a restriction map file appropriate for the restriction enzyme
 |DpnII, MboI|hg19|[link](https://www.encodeproject.org/files/ENCFF955ICX/)|
 |HindIII|hg19|[link](https://www.encodeproject.org/files/ENCFF997LWB/)|
 
-Alternatively, you can also create your own restriction map file using the [generate_site_positions.py](https://github.com/aidenlab/juicer/blob/master/misc/generate_site_positions.py) script from the juicer pipeline. You should make sure that your restriction map has the format 
+Alternatively, you can also create your own restriction map file using the [generate_site_positions.py](https://github.com/aidenlab/juicer/blob/master/misc/generate_site_positions.py) script from the juicer pipeline. You should make sure that your restriction map has a format like: 
 ```
 1 11160 12411 12461 ... 249250621
 2 11514 11874 12160 ... 243199373

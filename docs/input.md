@@ -60,7 +60,7 @@ In order to run the HiC pipeline you will need to specify the bwa index file pre
 |genome fasta|GRCh38|[link](https://www.encodeproject.org/files/GRCh38_no_alt_analysis_set_GCA_000001405.15/)|
 |chromosome sizes|GRCh38|[link](https://www.encodeproject.org/files/GRCh38_EBV.chrom.sizes/)|
 
-You will also need a restriction map file appropriate for the restriction enzyme and assembly. MboI and DpnII share the same restriction map because they have the same recognition site.
+You will also need a restriction map file appropriate for the restriction enzyme and assembly. MboI and DpnII share the same restriction map because they have the same recognition site. 
 
 |restriction enzymes|assembly|ENCODE portal link|
 |-|-|-|
@@ -68,3 +68,11 @@ You will also need a restriction map file appropriate for the restriction enzyme
 |HindIII|GRCh38|[link](https://www.encodeproject.org/files/ENCFF509VQM/)|
 |DpnII, MboI|hg19|[link](https://www.encodeproject.org/files/ENCFF955ICX/)|
 |HindIII|hg19|[link](https://www.encodeproject.org/files/ENCFF997LWB/)|
+
+Alternatively, you can also create your own restriction map file using the [generate_site_positions.py](https://github.com/aidenlab/juicer/blob/master/misc/generate_site_positions.py) script from the juicer pipeline. You should make sure that your restriction map has the format 
+```
+1 11160 12411 12461 ... 249250621
+2 11514 11874 12160 ... 243199373
+3 60138 60662 60788 ... 198022430
+```
+Other formats can lead to problems with the hiccups step of the pipeline. 
